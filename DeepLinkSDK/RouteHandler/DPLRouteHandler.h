@@ -3,6 +3,8 @@
 
 @class DPLDeepLink;
 
+typedef void (^DPLTargetViewControllerCompletionHandler)(UIViewController <DPLTargetViewController> * targetViewController);
+
 /**
  A base class for handling routes. 
  
@@ -31,16 +33,15 @@
  is to place the `targetViewController' in the navigation stack. If you prefer to always present
  the target view controller modally, override this method and return YES. The default is NO.
  */
-- (BOOL)preferModalPresentation;
-
+- (BOOL)preferModalPresentation:(DPLDeepLink *)deepLink;
 
 /**
  The view controller that will be presented as a result of the deep link.
  @return A view controller conforming to the `DPLTargetViewController' protocol.
  @note Subclasses MUST override this method.
  */
-- (UIViewController <DPLTargetViewController> *)targetViewController;
-
+- (void)targetViewController:(DPLDeepLink *)deepLink
+           completionHandler:(DPLTargetViewControllerCompletionHandler)completionHandler;
 
 /**
  Specifies the view controller from which to present a `targetViewController'.
@@ -51,6 +52,12 @@
  */
 - (UIViewController *)viewControllerForPresentingDeepLink:(DPLDeepLink *)deepLink;
 
+/**
+ Specifies the URL from which to present a `targetViewController'.
+ @param deepLink A deep link instance.
+ @return A view controller for presenting a target view controller.
+ */
+- (NSURL *)URLForPresentingDeepLink:(DPLDeepLink *)deepLink;
 
 /**
  Displays the target view controller via the presenting view controller.
@@ -65,7 +72,10 @@
  @param targetViewController A view controller conforming to the `DPLTargetViewController' protocol.
  @param presentingViewController A view controller for presenting a target view controller.
  */
+
 - (void)presentTargetViewController:(UIViewController <DPLTargetViewController> *)targetViewController
-                   inViewController:(UIViewController *)presentingViewController;
+                   inViewController:(UIViewController *)presentingViewController
+                           deepLink:(DPLDeepLink *)deepLink
+                  completionHandler:(DPLTargetViewControllerCompletionHandler)completionHandler;
 
 @end

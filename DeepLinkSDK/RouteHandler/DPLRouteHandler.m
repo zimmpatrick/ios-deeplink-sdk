@@ -7,33 +7,46 @@
 }
 
 
-- (BOOL)preferModalPresentation {
+- (BOOL)preferModalPresentation:(DPLDeepLink *)deepLink {
     return NO;
 }
 
+- (void)targetViewController:(DPLDeepLink *)deepLink
+           completionHandler:(DPLTargetViewControllerCompletionHandler)completionHandler {
 
-- (UIViewController <DPLTargetViewController> *)targetViewController {
-    return nil;
+    if (completionHandler) {
+        completionHandler(nil);
+    }
 }
-
 
 - (UIViewController *)viewControllerForPresentingDeepLink:(DPLDeepLink *)deepLink {
     return [UIApplication sharedApplication].keyWindow.rootViewController;
 }
 
-
 - (void)presentTargetViewController:(UIViewController <DPLTargetViewController> *)targetViewController
-                   inViewController:(UIViewController *)presentingViewController {
+                   inViewController:(UIViewController *)presentingViewController
+                           deepLink:(DPLDeepLink *)deepLink
+                  completionHandler:(DPLTargetViewControllerCompletionHandler)completionHandler {
     
-    if ([self preferModalPresentation] ||
+    if ([self preferModalPresentation:deepLink] ||
         ![presentingViewController isKindOfClass:[UINavigationController class]]) {
         
-        [presentingViewController presentViewController:targetViewController animated:NO completion:NULL];
+        [presentingViewController presentViewController:targetViewController animated:NO completion:^{
+            if (completionHandler) {
+                completionHandler(targetViewController);
+            }
+        }];
+        
+        return;
     }
     else if ([presentingViewController isKindOfClass:[UINavigationController class]]) {
         
         [self placeTargetViewController:targetViewController
                  inNavigationController:(UINavigationController *)presentingViewController];
+    }
+    
+    if (completionHandler) {
+        completionHandler(targetViewController);
     }
 }
 
