@@ -99,6 +99,7 @@ typedef void(^DPLRouteCompletionBlock)(BOOL handled, NSError *error, UIViewContr
 - (void)setApplicationCanHandleDeepLinksBlock:(DPLApplicationCanHandleDeepLinksBlock)applicationCanHandleDeepLinksBlock;
 
 
+- (void)registerStaticRoutes;
 
 ///-------------------------------------------------
 /// @name Route Registration via Object Subscripting

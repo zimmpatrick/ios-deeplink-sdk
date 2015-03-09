@@ -187,19 +187,17 @@
                 if (handleURLError) {
                     
                     [self completeRouteWithSuccess:completionHandler handled:NO targetViewController:targetViewController error:handleURLError];
-              } else {
-                  
-                  NSError *presentError;
-                BOOL handled = [self presentRoute:routeHandler
-            presentingViewController:targetViewController
-                            deepLink:deepLink
-                               error:&presentError
-                                completionHandler:completionHandler];
-                  
-                  [self completeRouteWithSuccess:completionHandler handled:handled targetViewController:targetViewController error:presentError];
-              }
-                
-                
+                } else {
+                    
+                    NSError *presentError;
+                    BOOL handled = [self presentRoute:routeHandler
+                           presentingViewController:targetViewController
+                                           deepLink:deepLink
+                                              error:&presentError
+                                  completionHandler:completionHandler];
+
+                    [self completeRouteWithSuccess:completionHandler handled:handled targetViewController:targetViewController error:presentError];
+                }
             }];
             
             return  YES;
@@ -353,6 +351,39 @@
             }
         }
     }
+}
+
+- (void)registerStaticRoutes
+{
+    Class parentClass = [DPLRouteHandler class];
+    
+    int numClasses = objc_getClassList(NULL, 0);
+    Class *classes = NULL;
+ 
+    classes = (Class*)malloc(sizeof(Class) * numClasses);
+    numClasses = objc_getClassList(classes, numClasses);
+     
+    NSMutableArray *result = [NSMutableArray array];
+    for (NSInteger i = 0; i < numClasses; i++)
+    {
+        Class superClass = classes[i];
+        do
+        {
+            superClass = class_getSuperclass(superClass);
+        } while(superClass && superClass != parentClass);
+         
+        if (superClass == nil)
+        {
+            continue;
+        }
+
+        Class class = classes[i];
+        if ([class respondsToSelector:@selector(registerRoutes:)]) {
+            [class performSelector:@selector(registerRoutes:) withObject:self];
+        }
+    }
+ 
+    free(classes);
 }
 
 @end
