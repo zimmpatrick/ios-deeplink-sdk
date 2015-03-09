@@ -3,7 +3,7 @@
 
 @class DPLDeepLink;
 
-typedef void (^DPLTargetViewControllerCompletionHandler)(UIViewController <DPLTargetViewController> * targetViewController);
+typedef void (^DPLTargetViewControllerCompletionHandler)(UIViewController * targetViewController);
 
 /**
  A protocol for handling routes.
@@ -26,7 +26,7 @@ typedef void (^DPLTargetViewControllerCompletionHandler)(UIViewController <DPLTa
  @param deepLink A deep link instance.
  @return A view controller conforming to the `DPLTargetViewController' protocol.
  */
-- (UIViewController <DPLTargetViewController> *)targetViewController:(DPLDeepLink *)deepLink;
+- (UIViewController *)targetViewController:(DPLDeepLink *)deepLink;
 
 
 @optional
@@ -37,7 +37,8 @@ typedef void (^DPLTargetViewControllerCompletionHandler)(UIViewController <DPLTa
  @param deepLink A deep link instance.
  @param completionHandler A block executed returing the DPLTargetViewController.
  */
-- (void)targetViewController:(DPLDeepLink *)deepLink completionHandler:(DPLTargetViewControllerCompletionHandler)completionHandler;
+- (void)targetViewController:(DPLDeepLink *)deepLink
+           completionHandler:(DPLTargetViewControllerCompletionHandler)completionHandler;
 
 /**
  Indicates whether the deep link should be handled.
@@ -53,7 +54,7 @@ typedef void (^DPLTargetViewControllerCompletionHandler)(UIViewController <DPLTa
  the target view controller modally, override this method and return YES. The default is NO.
  @param deepLink A deep link instance.
  */
-- (BOOL)preferModalPresentation:(DPLDeepLink *)deepLink;
+- (BOOL)preferModalPresentationWithDeepLink:(DPLDeepLink *)deepLink;
 
 
 /**
@@ -86,8 +87,9 @@ typedef void (^DPLTargetViewControllerCompletionHandler)(UIViewController <DPLTa
  @param presentingViewController A view controller for presenting a target view controller.
  @param deepLink A deep link instance.
  */
-- (void)presentTargetViewController:(UIViewController <DPLTargetViewController> *)targetViewController
+- (void)presentTargetViewController:(UIViewController *)targetViewController
                    inViewController:(UIViewController *)presentingViewController
-                           deepLink:(DPLDeepLink *)deepLink;
+                           deepLink:(DPLDeepLink *)deepLink
+                  completionHandler:(DPLTargetViewControllerCompletionHandler)completionHandler;
 
 @end

@@ -49,15 +49,21 @@
     return [self targetViewController];
 }
 
-- (BOOL)preferModalPresentation:(DPLDeepLink *)deepLink {
-    return [self preferModalPresentation:deepLink];
+- (BOOL)preferModalPresentationWithDeepLink:(DPLDeepLink *)deepLink {
+    return [self preferModalPresentation];
 }
 
-- (void)presentTargetViewController:(UIViewController <DPLTargetViewController> *)targetViewController
+- (void)presentTargetViewController:(UIViewController *)targetViewController
                    inViewController:(UIViewController *)presentingViewController
-                           deepLink:(DPLDeepLink *)deepLink {
+                           deepLink:(DPLDeepLink *)deepLink
+                  completionHandler:(DPLTargetViewControllerCompletionHandler)completionHandler
+{
+    [self presentTargetViewController:targetViewController
+                            inViewController:presentingViewController];
     
-    return [self presentTargetViewController:targetViewController inViewController:presentingViewController];
+    if (completionHandler) {
+        completionHandler(targetViewController);
+    }
 }
 
 @end

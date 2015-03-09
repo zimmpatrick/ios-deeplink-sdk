@@ -1,5 +1,6 @@
 #import <UIKit/UIKit.h>
 #import "DPLTargetViewControllerProtocol.h"
+#import "DPLRouteHandlerProtocol.h"
 
 @class DPLDeepLink;
 
@@ -73,7 +74,7 @@
  @param targetViewController A view controller conforming to the `DPLTargetViewController' protocol.
  @param presentingViewController A view controller for presenting a target view controller.
  */
-- (void)presentTargetViewController:(UIViewController <DPLTargetViewController> *)targetViewController
+- (void)presentTargetViewController:(UIViewController *)targetViewController
                    inViewController:(UIViewController *)presentingViewController;
 
 @end

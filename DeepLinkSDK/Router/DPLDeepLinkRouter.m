@@ -182,7 +182,7 @@
         if (presentingLink != nil) {
             
             // async
-            [self handleURL:presentingLink withCompletion:^(BOOL handled, NSError *handleURLError, UIViewController<DPLTargetViewController> *targetViewController) {
+            [self handleURL:presentingLink withCompletion:^(BOOL handled, NSError *handleURLError, UIViewController *targetViewController) {
                 
                 if (handleURLError) {
                     
@@ -193,7 +193,8 @@
                 BOOL handled = [self presentRoute:routeHandler
             presentingViewController:targetViewController
                             deepLink:deepLink
-                               error:&presentError];
+                               error:&presentError
+                                completionHandler:completionHandler];
                   
                   [self completeRouteWithSuccess:completionHandler handled:handled targetViewController:targetViewController error:presentError];
               }
@@ -208,14 +209,16 @@
     return [self presentRoute:routeHandler
      presentingViewController:presentingViewController
                      deepLink:deepLink
-                        error:error];
+                        error:error
+            completionHandler:completionHandler];
 }
 
 - (BOOL)presentRoute:(id<DPLRouteHandlerProtocol>)routeHandler
  presentingViewController:(UIViewController*)presentingViewController
                  deepLink:(DPLDeepLink*)deepLink
-                    error:(NSError *__autoreleasing *)error {
-    
+                    error:(NSError *__autoreleasing *)error
+        completionHandler:(DPLRouteCompletionBlock)completionHandler
+{
      if (presentingViewController == nil) {
      
          if ([routeHandler respondsToSelector:@selector(viewControllerForPresentingDeepLink:)]) {
@@ -229,15 +232,19 @@
      
      if ([routeHandler respondsToSelector:@selector(targetViewController:completionHandler:)]) {
          
-         [routeHandler targetViewController:deepLink completionHandler:^(UIViewController<DPLTargetViewController> *targetViewController) {
+         [routeHandler targetViewController:deepLink completionHandler:^(UIViewController *targetViewController) {
          
-             [self presentTargetViewController:routeHandler targetViewController:targetViewController inViewController:presentingViewController deepLink:deepLink];
+             [self presentTargetViewController:routeHandler
+                          targetViewController:targetViewController
+                              inViewController:presentingViewController
+                                      deepLink:deepLink
+                             completionHandler:completionHandler];
          }];
      
          return YES;
      }
      
-     UIViewController <DPLTargetViewController> *targetViewController = nil;
+     UIViewController *targetViewController = nil;
      if ([routeHandler respondsToSelector:@selector(targetViewController:)]) {
          targetViewController = [routeHandler targetViewController:deepLink];
      }
@@ -246,7 +253,10 @@
          [self presentTargetViewController:routeHandler
          targetViewController:targetViewController
          inViewController:presentingViewController
-         deepLink:deepLink];
+         deepLink:deepLink
+         completionHandler:completionHandler];
+         
+         return YES;
      } else {
          NSDictionary *userInfo = @{ NSLocalizedDescriptionKey: NSLocalizedString(@"The matched route handler does not specify a target view controller.", nil)};
          
@@ -256,8 +266,6 @@
          
          return NO;
      }
-     
-     return YES;
 }
 
 - (BOOL)handleRoute:(NSString *)route withDeepLink:(DPLDeepLink *)deepLink error:(NSError *__autoreleasing *)error completionHandler:(DPLRouteCompletionBlock)completionHandler {
@@ -291,7 +299,7 @@
                   
 - (void)completeRouteWithSuccess:(DPLRouteCompletionBlock)handler
                          handled:(BOOL)handled
-            targetViewController:(UIViewController<DPLTargetViewController>*)targetViewController
+            targetViewController:(UIViewController*)targetViewController
                            error:(NSError *)error {
 
     if (!handler) return;
@@ -302,35 +310,46 @@
 }
     
 - (void)presentTargetViewController:(id<DPLRouteHandlerProtocol>)routeHandler
-               targetViewController:(UIViewController <DPLTargetViewController> *)targetViewController
+               targetViewController:(UIViewController *)targetViewController
                    inViewController:(UIViewController *)presentingViewController
                            deepLink:(DPLDeepLink *)deepLink
+                  completionHandler:(DPLRouteCompletionBlock)completionHandler
 {
 
     if (targetViewController) {
         if ([targetViewController respondsToSelector:@selector(configureWithDeepLink:)]) {
-            [targetViewController configureWithDeepLink:deepLink];
+            [targetViewController performSelector:@selector(configureWithDeepLink:) withObject:deepLink];
         }
         
-        if ([routeHandler respondsToSelector:@selector(presentTargetViewController:inViewController:deepLink:)]) {
-            [routeHandler presentTargetViewController:targetViewController inViewController:presentingViewController deepLink:deepLink];
+        if ([routeHandler respondsToSelector:@selector(presentTargetViewController:inViewController:deepLink:completionHandler:)]) {
+            
+            [routeHandler presentTargetViewController:targetViewController inViewController:presentingViewController deepLink:deepLink completionHandler:^(UIViewController *targetViewController) {
+                [self completeRouteWithSuccess:completionHandler handled:YES targetViewController:targetViewController error:nil];
+            }];
         }
         else {
             
             BOOL preferModalPresentation = NO;
-            if ([routeHandler respondsToSelector:@selector(preferModalPresentation:)]) {
-                preferModalPresentation = [routeHandler preferModalPresentation:deepLink];
+            if ([routeHandler respondsToSelector:@selector(preferModalPresentationWithDeepLink:)]) {
+                preferModalPresentation = [routeHandler preferModalPresentationWithDeepLink:deepLink];
             }
             
             if (preferModalPresentation ||
                 ![presentingViewController isKindOfClass:[UINavigationController class]]) {
                 
-                [presentingViewController presentViewController:targetViewController animated:NO completion:NULL];
+                [presentingViewController presentViewController:targetViewController animated:NO completion:^{
+                    [self completeRouteWithSuccess:completionHandler handled:YES targetViewController:targetViewController error:nil];
+                }];
             }
             else if ([presentingViewController isKindOfClass:[UINavigationController class]]) {
                 
                 UINavigationController * navigationViewController = (UINavigationController*)presentingViewController;
                 [navigationViewController placeTargetViewController:targetViewController];
+                
+                [self completeRouteWithSuccess:completionHandler handled:YES targetViewController:targetViewController error:nil];
+            }
+            else {
+                [self completeRouteWithSuccess:completionHandler handled:NO targetViewController:nil error:nil];
             }
         }
     }
