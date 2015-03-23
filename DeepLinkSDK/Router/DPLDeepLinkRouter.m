@@ -221,6 +221,9 @@ presentingViewController:(UIViewController*)presentingViewController
     [routeHandler targetViewController:deepLink completionHandler:^(UIViewController<DPLTargetViewController> *targetViewController) {
         
         if (targetViewController) {
+            
+            [targetViewController configureWithDeepLink:deepLink];
+            
             [routeHandler presentTargetViewController:targetViewController
                                      inViewController:presentingViewController
                                              deepLink:deepLink
